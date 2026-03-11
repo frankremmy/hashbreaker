@@ -1,0 +1,122 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>HashBreaker — Password Analysis Lab</title>
+</head>
+<body>
+
+  <header>
+    <div class="logo">HASHBREAKER</div>
+    <div class="status-bar">
+      <div id="clock"></div>
+    </div>
+  </header>
+
+  <main>
+
+    <!-- Section 1: Password Input -->
+    <section class="panel" id="panel-input">
+      <p class="panel-label">// 01 — TARGET INPUT</p>
+      <div class="input-row">
+        <input type="password" id="passwordInput" placeholder="enter a password to analyse..." autocomplete="off" spellcheck="false"/>
+        <button id="toggleBtn">SHOW</button>
+      </div>
+      <div class="strength-section">
+        <div class="strength-label">
+          <span>PASSWORD STRENGTH</span>
+          <span id="strengthText">—</span>
+        </div>
+        <div class="meter-track">
+          <div id="strengthBar"></div>
+        </div>
+        <div class="char-stats">
+          <div class="char-stat" id="stat-len">LENGTH: 0</div>
+          <div class="char-stat" id="stat-upper">UPPERCASE</div>
+          <div class="char-stat" id="stat-lower">LOWERCASE</div>
+          <div class="char-stat" id="stat-num">NUMBERS</div>
+          <div class="char-stat" id="stat-sym">SYMBOLS</div>
+        </div>
+      </div>
+    </section>
+
+    <!-- Section 2: Hash Digests -->
+    <section class="panel" id="panel-hashes">
+      <p class="panel-label">// 02 — HASH DIGESTS</p>
+      <div class="hash-grid">
+        <div class="hash-row">
+          <div class="hash-algo">MD5</div>
+          <div class="hash-value" id="hash-md5">awaiting input...</div>
+          <button class="copy-btn" data-target="hash-md5">COPY</button>
+        </div>
+        <div class="hash-row">
+          <div class="hash-algo">SHA-1</div>
+          <div class="hash-value" id="hash-sha1">awaiting input...</div>
+          <button class="copy-btn" data-target="hash-sha1">COPY</button>
+        </div>
+        <div class="hash-row">
+          <div class="hash-algo">SHA-256</div>
+          <div class="hash-value" id="hash-sha256">awaiting input...</div>
+          <button class="copy-btn" data-target="hash-sha256">COPY</button>
+        </div>
+      </div>
+    </section>
+
+    <!-- Section 3: Entropy Analysis -->
+    <section class="panel" id="panel-entropy">
+      <p class="panel-label">// 03 — ENTROPY ANALYSIS</p>
+      <div class="info-grid">
+        <div class="info-card">
+          <h4>BIT ENTROPY</h4>
+          <span id="entropyVal">0.00</span>
+          <div id="crackTime">Estimated crack time: —</div>
+        </div>
+        <div class="info-card">
+          <h4>ALGORITHM NOTES</h4>
+          <p>
+            <strong>MD5</strong> — 128-bit, broken. Collision attacks exist.<br/>
+            <strong>SHA-1</strong> — 160-bit, deprecated. SHAttered in 2017.<br/>
+            <strong>SHA-256</strong> — 256-bit, currently secure. Part of SHA-2 family.
+          </p>
+        </div>
+      </div>
+    </section>
+
+    <!-- Section 4: Dictionary Attack -->
+    <section class="panel" id="panel-attack">
+      <p class="panel-label">// 04 — DICTIONARY ATTACK SIMULATION</p>
+      <div class="crack-controls">
+        <select id="wordlistSelect">
+          <option value="top10">Top 10 Most Common</option>
+          <option value="top100">Top 100 Common Passwords</option>
+          <option value="names">Common Names + Numbers</option>
+          <option value="leet">Leet Speak Variants</option>
+        </select>
+        <select id="hashTypeSelect">
+          <option value="md5">Attack MD5 Hash</option>
+          <option value="sha1">Attack SHA-1 Hash</option>
+          <option value="sha256">Attack SHA-256 Hash</option>
+        </select>
+        <button id="crackBtn">▶ RUN ATTACK</button>
+      </div>
+      <div class="crack-progress" id="crackProgress">
+        <div class="progress-label">
+          <span id="progressLabel">Trying passwords...</span>
+          <span id="progressPct">0%</span>
+        </div>
+        <div class="progress-track">
+          <div id="progressFill"></div>
+        </div>
+      </div>
+      <div class="terminal-output" id="terminalOutput"></div>
+    </section>
+
+  </main>
+
+  <footer>
+    Built as a cybersecurity portfolio project — for educational purposes only.
+  </footer>
+
+</body>
+</html>

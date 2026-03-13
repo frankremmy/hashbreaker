@@ -1,4 +1,5 @@
 # HashBreaker: A Password Analysis Lab
+**Live Demo:** https://frankremmy.github.io/hashbreaker/
 
 > A cybersecurity portfolio project demonstrating cryptographic hashing, password strength analysis, and dictionary attack simulation (as used by John the Ripper).
 

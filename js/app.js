@@ -198,3 +198,148 @@ document.querySelectorAll('.copy-btn').forEach(btn => {
     setTimeout(() => { btn.textContent = 'COPY'; btn.classList.remove('copied'); }, 1500);
   });
 });
+
+// ─── Wordlists ─────────────────────────────────────────────────────────────────
+const WORDLISTS = {
+  top10: [
+    '123456', 'password', '123456789', '12345678', '12345',
+    '1234567', 'password1', 'iloveyou', 'admin', 'qwerty'
+  ],
+  top100: [
+    '123456','password','123456789','12345678','12345','1234567','password1',
+    'iloveyou','admin','qwerty','welcome','monkey','dragon','master','letmein',
+    'login','hello','sunshine','shadow','princess','abc123','football','baseball',
+    'soccer','michael','superman','batman','trustno1','passw0rd','starwars',
+    'charlie','donald','password2','qwerty123','111111','1q2w3e4r','admin123',
+    'root','toor','pass','test','guest','123123','000000','654321','666666',
+    '888888','123321','qwertyuiop','987654321','zxcvbnm','asdfghjkl','1234',
+    '1111','0000','55555','99999','77777','88888','66666','jessica','jordan',
+    'jennifer','william','daniel','matthew','andrew','joshua','george','thomas',
+    'hunter','harley','ranger','buster','dakota','tigger','diamond','summer',
+    'winter','spring','autumn','freedom','america','london','liverpool','arsenal',
+    'chelsea','warrior','thunder','password3','pass123','p@ssword','pa$$word',
+    'P@ssw0rd','letme1n','welcome1','changeme','secret','mypass'
+  ],
+  names: [
+    'alice123','bob123','charlie1','david123','emma2024','james123','john1234',
+    'mary1234','mike2023','sarah123','jennifer','michael1','william1','thomas123',
+    'robert12','olivia12','sophia12','mason123','noah1234','liam1234','admin1',
+    'user1234','guest123','demo1234','test1234','root1234','info1234','contact1',
+    'support1','help1234'
+  ],
+  leet: [
+    'p@ssword','p4ssword','passw0rd','pa55word','p@55w0rd','@dmin123','s3cur1ty',
+    'h@cker12','l33th4x0r','c0mputer','1ntern3t','fr33dom!','s3cret!1','l0g1n123',
+    'w3lc0me1','$ecure12','m0nk3y12','dr@gon12','h3ll0123'
+  ]
+};
+
+// ─── Attack State ──────────────────────────────────────────────────────────────
+let cracking = false;
+
+// ─── Dictionary Attack ─────────────────────────────────────────────────────────
+async function startCrack() {
+  const pwd = document.getElementById('passwordInput').value;
+
+  if (!pwd) {
+    appendTerminal('<span class="t-red">ERROR: No password entered. Set target first.</span>');
+    return;
+  }
+
+  if (cracking) return;
+
+  const listKey  = document.getElementById('wordlistSelect').value;
+  const hashType = document.getElementById('hashTypeSelect').value;
+  const wordlist = WORDLISTS[listKey];
+
+  const targetHash = hashCache[hashType === 'sha256' ? 'sha256' : hashType === 'sha1' ? 'sha1' : 'md5'];
+
+  if (!targetHash) {
+    appendTerminal('<span class="t-red">ERROR: Compute hashes first by typing a password.</span>');
+    return;
+  }
+
+  cracking = true;
+  document.getElementById('crackBtn').disabled = true;
+
+  const progress = document.getElementById('crackProgress');
+  progress.classList.add('visible');
+
+  // Clear terminal
+  document.getElementById('terminalOutput').innerHTML = '';
+
+  const algo = hashType === 'sha256' ? 'SHA-256' : hashType === 'sha1' ? 'SHA-1' : 'MD5';
+
+  appendTerminal(`<span class="t-amber">$ john --wordlist=${listKey}.txt --format=${algo.toLowerCase().replace('-', '')} hash.txt</span>`);
+  appendTerminal(`<span class="t-dim">Loaded 1 password hash (${algo})</span>`);
+  appendTerminal(`<span class="t-dim">Wordlist: ${wordlist.length} candidates</span>`);
+  appendTerminal(`<span class="t-dim">Press 'q' or Ctrl-C to abort</span>`);
+  appendTerminal('');
+
+  let found = false;
+
+  for (let i = 0; i < wordlist.length; i++) {
+    const candidate = wordlist[i];
+    const pct = Math.round(((i + 1) / wordlist.length) * 100);
+
+    // Update progress bar
+    document.getElementById('progressFill').style.width = pct + '%';
+    document.getElementById('progressPct').textContent  = pct + '%';
+    document.getElementById('progressLabel').textContent = `Trying: ${candidate}`;
+
+    // Compute hash for candidate
+    let candidateHash;
+    if (hashType === 'md5')        candidateHash = md5(candidate);
+    else if (hashType === 'sha1')  candidateHash = await sha('SHA-1', candidate);
+    else                           candidateHash = await sha('SHA-256', candidate);
+
+    // Print progress to terminal every 10 attempts
+    if (i % 10 === 0 || i < 5) {
+      appendTerminal(`<span class="t-dim">  [${String(i + 1).padStart(3, '0')}/${wordlist.length}] trying: ${candidate}</span>`);
+    }
+
+    await new Promise(r => setTimeout(r, 30));
+
+    if (candidateHash === targetHash) {
+      appendTerminal('');
+      appendTerminal(`<span class="t-green">████████████████████████████████████████</span>`);
+      appendTerminal(`<span class="t-green">  ✓ PASSWORD CRACKED IN ${i + 1} ATTEMPT${i === 0 ? '' : 'S'}!</span>`);
+      appendTerminal(`<span class="t-green">  HASH : ${targetHash.slice(0, 32)}...</span>`);
+      appendTerminal(`<span class="t-green">  PLAIN: ${candidate}</span>`);
+      appendTerminal(`<span class="t-green">████████████████████████████████████████</span>`);
+      appendTerminal('');
+      appendTerminal(`<span class="t-amber">⚠ This password exists in common wordlists.</span>`);
+      appendTerminal(`<span class="t-amber">  Use a longer, unique passphrase instead.</span>`);
+      found = true;
+      break;
+    }
+  }
+
+  if (!found) {
+    appendTerminal('');
+    appendTerminal(`<span class="t-blue">─────────────────────────────────────────</span>`);
+    appendTerminal(`<span class="t-blue">  ✓ NOT FOUND in ${wordlist.length}-word dictionary</span>`);
+    appendTerminal(`<span class="t-blue">  Password survived this attack vector.</span>`);
+    appendTerminal(`<span class="t-blue">─────────────────────────────────────────</span>`);
+    appendTerminal(`<span class="t-dim">  Note: larger wordlists (rockyou.txt has</span>`);
+    appendTerminal(`<span class="t-dim">  14M+ entries) may still find this password.</span>`);
+  }
+
+  appendTerminal('');
+  appendTerminal(`<span class="t-dim">Session completed. <span class="cursor"></span></span>`);
+
+  cracking = false;
+  document.getElementById('crackBtn').disabled = false;
+}
+
+// ─── Append line to terminal output ───────────────────────────────────────────
+function appendTerminal(html) {
+  const term = document.getElementById('terminalOutput');
+  const line = document.createElement('div');
+  line.innerHTML = html;
+  term.appendChild(line);
+  term.scrollTop = term.scrollHeight;
+}
+
+// ─── Wire up attack button ─────────────────────────────────────────────────────
+document.getElementById('crackBtn').addEventListener('click', startCrack);
